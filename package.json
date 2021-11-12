@@ -1,0 +1,16 @@
+{
+  "name": "api-test-framework",
+  "version": "1.0.0",
+  "description": "Sample API test framework",
+  "main": "index.js",
+  "scripts": {
+    "cy:test": "cypress run",
+    "cy:open": "cypress open"
+  },
+  "author": "Marie Cruz",
+  "license": "ISC",
+  "devDependencies": {
+    "@bahmutov/cy-api": "^1.5.0",
+    "cypress": "7.2.0"
+  }
+}
