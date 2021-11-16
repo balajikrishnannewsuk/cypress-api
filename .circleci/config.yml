@@ -4,7 +4,7 @@ orbs:
 
 slack-fail-post-step: &slack-fail-post-step
   context:
-    - cypress-api-ci-slack
+    - platformintegration-api-ci-slack
   post-steps:
     - slack/notify:
         branch_pattern: master
