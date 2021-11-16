@@ -12,6 +12,7 @@ slack-fail-post-step: &slack-fail-post-step
         template: basic_fail_1
         channel: C02L84WH2TZ
 
+commands:
 
   install_nodejs:
     steps:
@@ -20,7 +21,6 @@ slack-fail-post-step: &slack-fail-post-step
           command: |
             curl -sSL "https://nodejs.org/dist/v10.21.0/node-v10.21.0-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v10.21.0-linux-x64/bin/node
             curl https://www.npmjs.com/install.sh | sudo npm_install=6.14.11 sh
-
 
   run_npm_command_with_cache:
     parameters:
@@ -40,20 +40,13 @@ slack-fail-post-step: &slack-fail-post-step
           paths:
             - node_modules
 
-  install_js_dependencies_with_cache:
-    steps:
-      - run_npm_command_with_cache:
-          command: run install-js-dependencies
-
 
   run_cypress_tests:
-    parameters:
     steps:
       - run:
           name: Run Cypress tests
           command: |
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress-api/cypress/integration/tests/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
-
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/tests/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
 
 jobs:
   build:
@@ -61,31 +54,23 @@ jobs:
       - image: circleci/php:7.4-browsers
     steps:
       - checkout
-      - install_nodejs
-      - install_php_dependencies
-          paths:
-            - node_modules
-      - run:
-          name: Installing dependencies
-          command: npm run install-js-dependencies
+      - install_nodejs 
 
   cypress-tests:
     machine:
       image: ubuntu-2004:202010-01
     parallelism: 3
+    parameters:
+        wp-version:
+            type: string
+            default: "latest"
     resource_class: xlarge
     steps:
       - checkout
       - attach_workspace:
           at: .
-      - init_submodules
-      - run:
-          name: npm install
-          command: |
-            npm ci
-      - add_local_hostnames
       - store_artifacts:
-          path: cypress-api/cypress/screenshots
+          path: cypress/screenshots
       - store_test_results:
           path: test_results
 
@@ -122,6 +107,35 @@ jobs:
           name: Deploy -built branch to github
           command: VIP_ENVIRONMENT=${CIRCLE_TAG} CIRCLE_BRANCH=${CIRCLE_TAG} bash ./.circleci/deploy.sh
 
+  build-develop:
+    docker:
+      - image: cimg/base:2021.01
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - add_ssh_keys:
+          fingerprints:
+            # CircleCI Deploy Fingerprint in newsuk repo
+            - c0:42:f2:04:3b:ff:82:1d:62:5b:2e:41:ea:00:db:df
+      - run:
+          name: Deploy -built branch to github
+          command: VIP_ENVIRONMENT=develop bash ./.circleci/deploy.sh
+
+  build-staging:
+    docker:
+      - image: cimg/base:2021.01
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - add_ssh_keys:
+          fingerprints:
+            # CircleCI Deploy Fingerprint in newsuk repo
+            - c0:42:f2:04:3b:ff:82:1d:62:5b:2e:41:ea:00:db:df
+      - run:
+          name: Deploy -built branch to github
+          command: VIP_ENVIRONMENT=staging bash ./.circleci/deploy.sh
 
   build-production:
     docker:
@@ -181,6 +195,12 @@ workflows:
           filters:
             branches:
               ignore: /.*-built/
+            tags:
+              only:
+                - develop
+                - dev1
+                - dev2
+                - dev3
       - cypress-tests:
           <<: *slack-fail-post-step
           requires:
@@ -195,8 +215,37 @@ workflows:
             - build
             - linting
           filters:
+            tags:
+              only:
+                - develop
+                - dev1
+                - dev2
+                - dev3
             branches:
               ignore: /.*/
+      - build-develop:
+          <<: *slack-fail-post-step
+          requires:
+            - build
+            - linting
+          filters:
+            branches:
+              only:
+                - master
+      - build-staging:
+          <<: *slack-fail-post-step
+          requires:
+            - build
+            - linting
+          filters:
+            branches:
+              only:
+                - master
+      - approve-production:
+          <<: *slack-fail-post-step
+          type: approval
+          requires:
+            - build-staging
       - build-production:
           <<: *slack-fail-post-step
           requires:
