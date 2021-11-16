@@ -15,6 +15,6 @@ describe('Users API', () => {
   });
 
   it('should return the correct number of users', () => {
-    cy.get('@users').its('body').should('have.length', 9);
+    cy.get('@users').its('body').should('have.length', 8);
   });
 });
