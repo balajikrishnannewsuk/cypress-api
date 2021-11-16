@@ -1,0 +1,207 @@
+version: 2.1
+orbs:
+  slack: circleci/slack@4.1
+
+slack-fail-post-step: &slack-fail-post-step
+  context:
+    - cypress-api-ci-slack
+  post-steps:
+    - slack/notify:
+        branch_pattern: master
+        event: fail
+        template: basic_fail_1
+        channel: C02L84WH2TZ
+
+
+  install_nodejs:
+    steps:
+      - run:
+          name: Install Node.js
+          command: |
+            curl -sSL "https://nodejs.org/dist/v10.21.0/node-v10.21.0-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v10.21.0-linux-x64/bin/node
+            curl https://www.npmjs.com/install.sh | sudo npm_install=6.14.11 sh
+
+
+  run_npm_command_with_cache:
+    parameters:
+      command:
+        type: string
+    steps:
+      - restore_cache:
+          name: Restore npm cache
+          keys:
+            - v1-deps-{{ checksum "package-lock.json" }}
+      - run:
+          name: NPM install
+          command: npm << parameters.command >>
+      - save_cache:
+          name: Save npm cache
+          key: v1-deps-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+
+  install_js_dependencies_with_cache:
+    steps:
+      - run_npm_command_with_cache:
+          command: run install-js-dependencies
+
+
+  run_cypress_tests:
+    parameters:
+    steps:
+      - run:
+          name: Run Cypress tests
+          command: |
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress-api/cypress/integration/tests/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
+
+
+jobs:
+  build:
+    docker:
+      - image: circleci/php:7.4-browsers
+    steps:
+      - checkout
+      - install_nodejs
+      - install_php_dependencies
+          paths:
+            - node_modules
+      - run:
+          name: Installing dependencies
+          command: npm run install-js-dependencies
+
+  cypress-tests:
+    machine:
+      image: ubuntu-2004:202010-01
+    parallelism: 3
+    resource_class: xlarge
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - init_submodules
+      - run:
+          name: npm install
+          command: |
+            npm ci
+      - add_local_hostnames
+      - store_artifacts:
+          path: cypress-api/cypress/screenshots
+      - store_test_results:
+          path: test_results
+
+
+  linting:
+    docker:
+      - image: cimg/node:10.24.1
+    steps:
+      - checkout
+      - run_npm_command_with_cache:
+          command: ci
+      - run:
+          name: Running eslint
+          command: npm run lint:eslint
+      - run:
+          name: Running jshint
+          command: npm run lint:jshint
+      - run:
+          name: Running gherkin lint
+          command: npm run lint:gherkin
+
+  build-dev-tag:
+    docker:
+      - image: cimg/base:2021.01
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - add_ssh_keys:
+          fingerprints:
+            # CircleCI Deploy Fingerprint in newsuk repo
+            - c0:42:f2:04:3b:ff:82:1d:62:5b:2e:41:ea:00:db:df
+      - run:
+          name: Deploy -built branch to github
+          command: VIP_ENVIRONMENT=${CIRCLE_TAG} CIRCLE_BRANCH=${CIRCLE_TAG} bash ./.circleci/deploy.sh
+
+
+  build-production:
+    docker:
+      - image: cimg/base:2021.01
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - add_ssh_keys:
+          fingerprints:
+            # CircleCI Deploy Fingerprint in newsuk repo
+            - c0:42:f2:04:3b:ff:82:1d:62:5b:2e:41:ea:00:db:df
+      - run:
+          name: Deploy -built branch to github
+          command: VIP_ENVIRONMENT=master bash ./.circleci/deploy.sh
+
+  # Sync job runs every time to ensure we keep the News UK repository in sync with the VIP repo
+  sync:
+    docker:
+      - image: circleci/buildpack-deps:18.04
+    steps:
+      # Run standard checkout to get the appropriate SSH keys installed, but then remove afterwards
+      - checkout:
+          path: checkout-tmp
+      - run:
+          name: Cleanup temporary checkout
+          command: rm -rf checkout-tmp
+      # Do the actual mirror & sync
+      - run:
+          name: Mirror clone from VIP repository
+          command: git clone --mirror ${CIRCLE_REPOSITORY_URL} readonly
+      - run:
+          name: Remove GitHub PR references
+          # https://stackoverflow.com/questions/37985275/how-can-i-exclude-pull-requests-from-git-mirror-clone/39764408#39764408
+          command: cd readonly && git show-ref | cut -d ' ' -f2 | grep 'pull' | xargs -r -L1 git update-ref -d
+      - add_ssh_keys:
+          fingerprints:
+            # CircleCI Sync Fingerprint in newsuk repo
+            - 10:be:bf:6f:48:aa:7a:59:73:87:5f:23:bf:99:f0:4f
+      - run:
+          name: Add the News UK repository as the readonly remote
+          command: cd readonly && git remote add readonly git@github.com:wpcomvip/newsuk-the-sun.git
+      - run:
+          name: Push mirror to News UK (readonly) repository
+          command: cd readonly && git push --mirror readonly
+
+workflows:
+  version: 2
+  sync:
+    jobs:
+      - sync:
+          <<: *slack-fail-post-step
+  build_deploy:
+    jobs:
+      - build:
+          <<: *slack-fail-post-step
+          filters:
+            branches:
+              ignore: /.*-built/
+      - cypress-tests:
+          <<: *slack-fail-post-step
+          requires:
+            - build
+      - linting:
+          <<: *slack-fail-post-step
+          requires:
+            - build
+      - build-dev-tag:
+          <<: *slack-fail-post-step
+          requires:
+            - build
+            - linting
+          filters:
+            branches:
+              ignore: /.*/
+      - build-production:
+          <<: *slack-fail-post-step
+          requires:
+            - approve-production
+          filters:
+            branches:
+              only:
+                - master
