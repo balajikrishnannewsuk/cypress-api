@@ -90,35 +90,6 @@ jobs:
           name: Running gherkin lint
           command: npm run lint:gherkin
 
-  build-dev-tag:
-    docker:
-      - image: cimg/base:2021.01
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - add_ssh_keys:
-          fingerprints:
-            # CircleCI Deploy Fingerprint in newsuk repo
-            - c0:42:f2:04:3b:ff:82:1d:62:5b:2e:41:ea:00:db:df
-      - run:
-          name: Deploy -built branch to github
-          command: VIP_ENVIRONMENT=${CIRCLE_TAG} CIRCLE_BRANCH=${CIRCLE_TAG} bash ./.circleci/deploy.sh
-
-  build-production:
-    docker:
-      - image: cimg/base:2021.01
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - add_ssh_keys:
-          fingerprints:
-            # CircleCI Deploy Fingerprint in newsuk repo
-            - c0:42:f2:04:3b:ff:82:1d:62:5b:2e:41:ea:00:db:df
-      - run:
-          name: Deploy -built branch to github
-          command: VIP_ENVIRONMENT=master bash ./.circleci/deploy.sh
 
 workflows:
   version: 2
@@ -137,17 +108,4 @@ workflows:
           <<: *slack-fail-post-step
           requires:
             - build
-      - build-dev-tag:
-          <<: *slack-fail-post-step
-          requires:
-            - build
-            - linting
-          filters:
-            branches:
-              ignore: /.*/
-      - build-production:
-          <<: *slack-fail-post-step
-          filters:
-            branches:
-              only:
-                - master
+      
