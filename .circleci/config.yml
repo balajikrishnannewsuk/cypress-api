@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   slack: circleci/slack@4.1
+  cypress: cypress-io/cypress@1
 
 slack-fail-post-step: &slack-fail-post-step
   context:
