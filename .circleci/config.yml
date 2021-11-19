@@ -45,7 +45,7 @@ commands:
       - run:
           name: Run Cypress tests
           command: |
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/tests/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
 jobs:
   build:
     docker:
