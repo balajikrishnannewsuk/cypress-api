@@ -39,6 +39,11 @@ commands:
           paths:
             - node_modules
 
+  install_js_dependencies_with_cache:
+    steps:
+      - run_npm_command_with_cache:
+          command: run install-js-dependencies
+
 
   run_cypress_tests:
     steps:
@@ -68,6 +73,10 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
+      - run:
+          name: npm install
+          command: |
+            npm ci
       - store_artifacts:
           override:
           path: cypress/screenshots
