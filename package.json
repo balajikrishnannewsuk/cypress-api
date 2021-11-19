@@ -6,7 +6,8 @@
   "scripts": {
     "cy:test": "cypress run",
     "cy:open": "cypress open",
-    "lint": "eslint.js"
+    "lint:eslint": "eslint .",
+    "lint:eslint:fix": "npm run lint:eslint -- --fix"
   },
   "author": "Balaji Krishnan",
   "license": "ISC",
