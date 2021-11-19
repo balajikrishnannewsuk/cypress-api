@@ -74,9 +74,9 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-        name: npm install
-        command: 
-            npm i
+          name: npm install
+          command: |
+            npm ci
       - store_artifacts:
           override:
           path: cypress/screenshots
