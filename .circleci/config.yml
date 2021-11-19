@@ -68,8 +68,10 @@ jobs:
       - attach_workspace:
           at: .
       - store_artifacts:
+          override:
           path: cypress/screenshots
       - store_test_results:
+          override:
           path: test_results
 
 
