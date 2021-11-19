@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cypress" timestamp="2021-11-19T08:54:06" time="1.7950" tests="5" failures="0" skipped="0">
+  <testcase name="returns a JSON data" file="cypress/integration/tests/todos.spec.js" time="0.0580" classname="Todo API"/>
+  <testcase name="has the correct status code" file="cypress/integration/tests/todos.spec.js" time="0.0320" classname="Todo API"/>
+  <testcase name="loads all the todos from a specific user ID" file="cypress/integration/tests/todos.spec.js" time="0.5910" classname="Todo API"/>
+  <testcase name="marks todo item as completed" file="cypress/integration/tests/todos.spec.js" time="0.5000" classname="Todo API"/>
+  <testcase name="marks todo item as completed - different way" file="cypress/integration/tests/todos.spec.js" time="0.5860" classname="Todo API"/>
+</testsuite>

@@ -7,7 +7,7 @@
     "cy:test": "cypress run",
     "cy:open": "cypress open"
   },
-  "author": "Marie Cruz",
+  "author": "Balaji Krishnan",
   "license": "ISC",
   "devDependencies": {
     "@bahmutov/cy-api": "^1.6.0",
