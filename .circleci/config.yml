@@ -47,7 +47,7 @@ commands:
           command: |
             ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
           parallel: true
-          parallelism: 2
+          parallelism: 1
 jobs:
   build:
     docker:
