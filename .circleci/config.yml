@@ -46,13 +46,7 @@ commands:
 
 
  run_cypress_tests:
- parameters:
-      wp-version:
-        type: string
-        default: latest
     steps:
-      - start_wp_cypress:
-          wp-version: "<< parameters.wp-version >>"
       - run:
           name: Run Cypress tests
           command: |
