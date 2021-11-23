@@ -1,3 +1,4 @@
 {
-  "baseUrl": "http://jsonplaceholder.typicode.com"
+  "baseUrl": "http://jsonplaceholder.typicode.com",
+  "env":{"mocha":true}
 }
