@@ -45,8 +45,14 @@ commands:
           command: run install-js-dependencies
 
 
-  run_cypress_tests:
+ run_cypress_tests:
+ parameters:
+      wp-version:
+        type: string
+        default: latest
     steps:
+      - start_wp_cypress:
+          wp-version: "<< parameters.wp-version >>"
       - run:
           name: Run Cypress tests
           command: |
@@ -59,7 +65,7 @@ jobs:
       - checkout
       - install_nodejs 
 
-  cypress-tests:
+ cypress-tests:
     machine:
       image: ubuntu-2004:202010-01
     parallelism: 3
