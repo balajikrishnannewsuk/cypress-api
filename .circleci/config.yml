@@ -44,7 +44,6 @@ commands:
       - run_npm_command_with_cache:
           command: run install-js-dependencies
 
-
   run_cypress_tests:
     steps:
       - run:
