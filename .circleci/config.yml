@@ -45,7 +45,7 @@ commands:
           command: run install-js-dependencies
 
 
- run_cypress_tests:
+  run_cypress_tests:
     steps:
       - run:
           name: Run Cypress tests
@@ -59,7 +59,7 @@ jobs:
       - checkout
       - install_nodejs 
 
- cypress-tests:
+  cypress-tests:
     machine:
       image: ubuntu-2004:202010-01
     parallelism: 3
