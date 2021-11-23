@@ -48,7 +48,7 @@ commands:
     steps:
       - run:
           name: Run Cypress tests
-          command: |
+          command: 
             ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/tests/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
 jobs:
   build:
@@ -73,7 +73,7 @@ jobs:
           at: .
       - run:
           name: npm install
-          command: |
+          command: 
             npm ci
       - store_artifacts:
           override:
