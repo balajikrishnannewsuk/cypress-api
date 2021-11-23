@@ -10,6 +10,41 @@
     "parserOptions": {
         "ecmaVersion": 13
     },
+    "globals": {
+        "cy": "readonly",
+        "Cypress": "readonly",
+        "expect": "readonly",
+        "Given": "readonly",
+        "When": "readonly",
+        "Then": "readonly",
+        "defineParameterType": "readonly",
+        "error": "readonly"
+    },
     "rules": {
+        "func-names": "off",
+        "prefer-rest-params": "off",
+        "consistent-return": "off",
+        "no-param-reassign": "off",
+        "max-len": "off",
+        "camelcase": "off",
+        "prefer-template": "off",
+        "eqeqeq": "off",
+        "no-plusplus": "off",
+        "prefer-const": "off",
+        "getter-return": "off",
+        "default-case": "off",
+        "no-unused-expressions": "off",
+        "no-unused-vars": "off",
+        "no-underscore-dangle": "off",
+        "no-useless-escape": "off",
+        "vars-on-top": "off",
+        "no-console": "off",
+        "no-var": "off",
+        "no-undef": "off",
+        "wrap-iife": "off",
+        "yoda": "off",
+        "global-require": "off",
+        "import/prefer-default-export": "off",
+        "implicit-arrow-linebreak": "off"
     }
 }
