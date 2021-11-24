@@ -69,7 +69,6 @@ jobs:
             - ~/.cach
 
       
-
   cypress-tests:
     machine:
       image: ubuntu-2004:202010-01
