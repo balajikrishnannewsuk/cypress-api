@@ -48,8 +48,8 @@ commands:
     steps:
       - run:
           name: Run Cypress tests
-          command: 
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/tests/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
+          command: |  
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
 jobs:
   build:
     docker:
@@ -73,8 +73,9 @@ jobs:
           at: .
       - run:
           name: npm install
-          command: 
+          command: |
             npm ci
+      - run_cypress_tests:    
       - store_artifacts:
           override:
           path: cypress/screenshots
@@ -96,9 +97,6 @@ jobs:
       - run:
           name: Running jshint
           command: npm run lint:jshint
-      - run:
-          name: Running gherkin lint
-          command: npm run lint:gherkin
 
 
 workflows:
