@@ -38,6 +38,7 @@ commands:
           key: v1-deps-{{ checksum "package-lock.json" }}
           paths:
             - node_modules
+            - cypress
 
   install_js_dependencies_with_cache:
     steps:
@@ -58,17 +59,7 @@ jobs:
       - checkout
       - install_nodejs 
       - run_cypress_tests
-      - restore_cache:
-          name: Restore cache
-          keys:
-            - package-v1-{{ checksum "package-lock.json" }}
-          paths:
-            - node_modules
-      - save_cache:
-          name: Save cache
-          key: package-v1-{{ checksum "package-lock.json" }}
-          paths:
-            - node_modules
+      
 
   cypress-tests:
     machine:
