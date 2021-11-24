@@ -57,6 +57,7 @@ jobs:
     steps:
       - checkout
       - install_nodejs 
+      - run_cypress_tests
 
   cypress-tests:
     machine:
@@ -75,8 +76,8 @@ jobs:
           name: npm install
           command: |
             npm ci
-      - run_cypress_tests:  
-          name: Run Cypress tests 
+      - run:
+          name: Run Cypress tests
           command: |  
             ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter 
       - store_artifacts:
