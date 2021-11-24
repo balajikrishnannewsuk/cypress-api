@@ -60,6 +60,14 @@ jobs:
       - checkout
       - install_nodejs 
       - run_cypress_tests
+      - restore_cache:
+          key: npm-cache-{{ checksum "package.json" }}
+      - save_cache:
+          key: npm-cache-{{ checksum "package.json" }}
+          paths:
+            - ~/.npm
+            - ~/.cach
+
       
 
   cypress-tests:
