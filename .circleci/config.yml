@@ -46,6 +46,8 @@ commands:
 
   run_cypress_tests:
     steps:
+      - restore_cache:
+          key: npm-cache-{{ checksum "package.json" }}
       - run:
           name: Run Cypress tests
           command: |  
