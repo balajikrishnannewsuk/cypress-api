@@ -61,15 +61,7 @@ jobs:
       - checkout
       - install_nodejs 
       - run_cypress_tests
-      - restore_cache:
-          key: npm-cache-{{ checksum "package.json" }}
-      - save_cache:
-          key: npm-cache-{{ checksum "package.json" }}
-          paths:
-            - ~/.npm
-            - ~/.cache
-
-      
+   
   cypress-tests:
     machine:
       image: ubuntu-2004:202010-01
