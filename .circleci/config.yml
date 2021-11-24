@@ -38,7 +38,7 @@ commands:
           key: npm-cache-{{ checksum "package-lock.json" }}
           paths:
              - ~/.npm
-             - ~/.cach
+             - ~/.cache
 
   install_js_dependencies_with_cache:
     steps:
@@ -67,7 +67,7 @@ jobs:
           key: npm-cache-{{ checksum "package.json" }}
           paths:
             - ~/.npm
-            - ~/.cach
+            - ~/.cache
 
       
   cypress-tests:
