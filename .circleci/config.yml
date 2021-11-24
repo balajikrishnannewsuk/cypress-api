@@ -37,7 +37,6 @@ commands:
           name: Save npm cache
           key: npm-cache-{{ checksum "package-lock.json" }}
           paths:
-             - ~/.npm
              - ~/.cache
 
   install_js_dependencies_with_cache:
