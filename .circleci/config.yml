@@ -12,39 +12,92 @@ slack-fail-post-step: &slack-fail-post-step
         template: basic_fail_1
         channel: C02L84WH2TZ
 
+commands:
+
+  install_nodejs:
+    steps:
+      - run:
+          name: Install Node.js
+          command: |
+            curl -sSL "https://nodejs.org/dist/v10.21.0/node-v10.21.0-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v10.21.0-linux-x64/bin/node
+            curl https://www.npmjs.com/install.sh | sudo npm_install=6.14.11 sh
+  run_npm_command_with_cache:
+    parameters:
+      command:
+        type: string
+    steps:
+      - restore_cache:
+          name: Restore npm cache
+          keys:
+            - v1-deps-{{ checksum "package-lock.json" }}
+      - run:
+          name: NPM install
+          command: npm << parameters.command >>
+      - save_cache:
+          name: Save npm cache
+          key: v1-deps-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+
+  install_js_dependencies_with_cache:
+    steps:
+      - run_npm_command_with_cache:
+          command: run install-js-dependencies
+
+  run_cypress_tests:
+    steps:
+      - run:
+          name: Run Cypress tests
+          command: |  
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
 jobs:
   build:
     docker:
-      # the Docker image with Cypress dependencies
-      - image: cypress/base:8
-    parallelism: 3
+      - image: circleci/php:7.4-browsers
     steps:
       - checkout
-      - restore_cache:
-          key: npm-cache-{{ checksum "package.json" }}
-      - run:
-          name: Install project dependencies
-          command: npm ci
-      - save_cache:
-          key: npm-cache-{{ checksum "package.json" }}
-          paths:
-            - ~/.npm
-            - ~/.cache
+      - install_nodejs 
 
-cypress_tests:
-    docker:
-      - image: cypress/browsers:node12.18.3-chrome87-ff82
+  cypress-tests:
+    machine:
+      image: ubuntu-2004:202010-01
+    parallelism: 3
+    parameters:
+        wp-version:
+            type: string
+            default: "latest"
+    resource_class: xlarge
     steps:
       - checkout
-      - restore_cache:
-          key: npm-cache-{{ checksum "package.json" }}
+      - attach_workspace:
+          at: .
       - run:
-          name: Running cypress tests
-          command: npm cy:test
+          name: npm install
+          command: |
+            npm ci
+      - run:  
+          name: Run Cypress tests 
+          command: |  
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter 
       - store_artifacts:
-          path: cypress/videos
-      - store_artifacts:
-          path: cypress/screenshots            
+          path: cypress/screenshots
+      - store_test_results:
+          path: test_results
+
+
+  linting:
+    docker:
+      - image: cimg/node:10.24.1
+    steps:
+      - checkout
+      - run_npm_command_with_cache:
+          command: ci
+      - run:
+          name: Running eslint
+          command: npm run lint:eslint
+      - run:
+          name: Running jshint
+          command: npm run lint:jshint
 
 
 workflows:
@@ -56,7 +109,12 @@ workflows:
           filters:
             branches:
               ignore: /.*-built
-   
-      
-      
+      - cypress-tests:
+          <<: *slack-fail-post-step
+          requires:
+            - build
+      - linting:
+          <<: *slack-fail-post-step
+          requires:
+            - build
       
