@@ -61,7 +61,7 @@ jobs:
   cypress-tests:
     machine:
       image: ubuntu-2004:202010-01
-    parallelism: 3
+    parallelism: 1
     parameters:
         wp-version:
             type: string
@@ -85,20 +85,6 @@ jobs:
           path: test_results
 
 
-  linting:
-    docker:
-      - image: cimg/node:10.24.1
-    steps:
-      - checkout
-      - run_npm_command_with_cache:
-          command: ci
-      - run:
-          name: Running eslint
-          command: npm run lint:eslint
-      - run:
-          name: Running jshint
-          command: npm run lint:jshint
-
 
 workflows:
   version: 2
@@ -113,8 +99,5 @@ workflows:
           <<: *slack-fail-post-step
           requires:
             - build
-      - linting:
-          <<: *slack-fail-post-step
-          requires:
-            - build
+
       
