@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-describe('Todo API', () => {
+describe('Update API', () => {
   it('returns a JSON data', () => {
     cy.request('/todos')
       .its('headers')

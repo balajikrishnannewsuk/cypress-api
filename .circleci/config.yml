@@ -44,15 +44,12 @@ commands:
       - run_npm_command_with_cache:
           command: run install-js-dependencies
 
-
   run_cypress_tests:
     steps:
       - run:
           name: Run Cypress tests
-          command: |
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/tests/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
-          parallel: true
-          parallelism: 2
+          command: |  
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
 jobs:
   build:
     docker:
@@ -60,6 +57,7 @@ jobs:
     steps:
       - checkout
       - install_nodejs 
+    parallelism: 3
 
   cypress-tests:
     machine:
@@ -77,30 +75,15 @@ jobs:
           name: npm install
           command: |
             npm ci
+      - run:  
+          name: Run Cypress tests 
+          command: |  
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter 
       - store_artifacts:
-          override:
           path: cypress/screenshots
       - store_test_results:
-          override:
           path: test_results
 
-
-  linting:
-    docker:
-      - image: cimg/node:10.24.1
-    steps:
-      - checkout
-      - run_npm_command_with_cache:
-          command: ci
-      - run:
-          name: Running eslint
-          command: npm run lint:eslint
-      - run:
-          name: Running jshint
-          command: npm run lint:jshint
-      - run:
-          name: Running gherkin lint
-          command: npm run lint:gherkin
 
 
 workflows:
@@ -116,8 +99,5 @@ workflows:
           <<: *slack-fail-post-step
           requires:
             - build
-      - linting:
-          <<: *slack-fail-post-step
-          requires:
-            - build
+
       

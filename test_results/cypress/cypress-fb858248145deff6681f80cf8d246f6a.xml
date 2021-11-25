@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cypress" timestamp="2021-11-23T11:58:33" time="0.1560" tests="3" failures="0" skipped="0">
+  <testcase name="returns a JSON data" file="cypress/integration/tests/users.spec.js" time="0.0560" classname="Users API"/>
+  <testcase name="return the correct status code" file="cypress/integration/tests/users.spec.js" time="0.0320" classname="Users API"/>
+  <testcase name="should return the correct number of users" file="cypress/integration/tests/users.spec.js" time="0.0340" classname="Users API"/>
+</testsuite>
