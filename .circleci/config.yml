@@ -57,11 +57,11 @@ jobs:
     steps:
       - checkout
       - install_nodejs 
+    parallelism: 3
 
   cypress-tests:
     machine:
       image: ubuntu-2004:202010-01
-    parallelism: 1
     parameters:
         wp-version:
             type: string
