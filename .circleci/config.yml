@@ -49,7 +49,7 @@ commands:
       - run:
           name: Run Cypress tests
           command: |  
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=filesize)" --reporter cypress-circleci-reporter
 jobs:
   build:
     docker:
@@ -57,11 +57,12 @@ jobs:
     steps:
       - checkout
       - install_nodejs 
-    parallelism: 3
+   
 
   cypress-tests:
     machine:
       image: ubuntu-2004:202010-01
+    parallelism: 3
     parameters:
         wp-version:
             type: string
