@@ -21,44 +21,30 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys:
-            - v2-deps-{{ .Branch }}-{{ checksum "package-lock.json" }}
-            - v2-deps-{{ .Branch }}-
-            - v2-deps-
-      - run: npm ci
+          key: npm-cache-{{ checksum "package.json" }}
+      - run:
+          name: Install project dependencies
+          command: npm ci
       - save_cache:
-          key: v2-deps-{{ .Branch }}-{{ checksum "package-lock.json" }}
+          key: npm-cache-{{ checksum "package.json" }}
           paths:
             - ~/.npm
             - ~/.cache
-      - run:
-          name: Running cypress test
-          command: npm run cy:test
-       - store_artifacts:
-         path: cypress/screenshots
-       - store_test_results:
-         path: test_results
 
-  cypress_tests:
-    steps:
-      - run:
-          name: Run Cypress tests
-          command: npm run cy:test
-
-
-  linting:
+cypress_tests:
     docker:
-      - image: cimg/node:10.24.1
+      - image: cypress/browsers:node12.18.3-chrome87-ff82
     steps:
       - checkout
-      - run_npm_command_with_cache:
-          command: ci
+      - restore_cache:
+          key: npm-cache-{{ checksum "package.json" }}
       - run:
-          name: Running eslint
-          command: npm run lint:eslint
-      - run:
-          name: Running jshint
-          command: npm run lint:jshint
+          name: Running cypress tests
+          command: npm cy:test
+      - store_artifacts:
+          path: cypress/videos
+      - store_artifacts:
+          path: cypress/screenshots            
 
 
 workflows:
@@ -70,12 +56,7 @@ workflows:
           filters:
             branches:
               ignore: /.*-built
-      - cypress_tests:
-          <<: *slack-fail-post-step
-          requires:
-            - build
-      - linting:
-          <<: *slack-fail-post-step
-          requires:
-            - build
+   
+      
+      
       
