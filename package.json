@@ -4,7 +4,7 @@
   "description": "Sample API test framework",
   "main": "index.js",
   "scripts": {
-    "cy:test": "cypress run",
+    "cy:test": "./node_modules/cypress/bin/cypress run --spec '$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd ',' -)' --reporter cypress-circleci-reporter",
     "cy:open": "cypress open",
     "lint:eslint": "eslint ."
   },
