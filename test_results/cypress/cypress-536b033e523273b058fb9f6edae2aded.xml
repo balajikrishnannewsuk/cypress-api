@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="cypress" timestamp="2021-11-19T09:07:01" time="4.5770" tests="3" failures="1" skipped="0">
-  <testcase name="returns a JSON data" file="cypress/integration/tests/users.spec.js" time="0.0590" classname="Users API"/>
-  <testcase name="return the correct status code" file="cypress/integration/tests/users.spec.js" time="0.0320" classname="Users API"/>
-  <testcase name="should return the correct number of users" file="cypress/integration/tests/users.spec.js" time="0" classname="Users API">
-    <failure message="Timed out retrying after 4000ms: expected [ Array(10) ] to have a length of 9 but got 10" type="AssertionError"><![CDATA[AssertionError: Timed out retrying after 4000ms: expected [ Array(10) ] to have a length of 9 but got 10
-    at Context.eval (http://jsonplaceholder.typicode.com/__cypress/tests?p=cypress/integration/tests/users.spec.js:109:34)]]></failure>
-  </testcase>
-</testsuite>

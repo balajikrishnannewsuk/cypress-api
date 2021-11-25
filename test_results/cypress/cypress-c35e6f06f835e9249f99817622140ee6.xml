@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="cypress" timestamp="2021-11-19T08:53:58" time="4.1370" tests="4" failures="0" skipped="0">
-  <testcase name="loads all the posts successfully" file="cypress/integration/tests/posts.spec.js" time="1.0830" classname="Post API"/>
-  <testcase name="loads the correct amount of posts per user" file="cypress/integration/tests/posts.spec.js" time="0.9570" classname="Post API"/>
-  <testcase name="should add a new post successfully" file="cypress/integration/tests/posts.spec.js" time="0.9620" classname="Post API"/>
-  <testcase name="should delete a post successfully" file="cypress/integration/tests/posts.spec.js" time="1.1080" classname="Post API"/>
-</testsuite>
