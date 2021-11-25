@@ -7,7 +7,7 @@ slack-fail-post-step: &slack-fail-post-step
     - platformintegration-api-ci-slack
   post-steps:
     - slack/notify:
-        branch_pattern: master
+        branch_pattern: .+
         event: fail
         template: basic_fail_1
         channel: C02L84WH2TZ
