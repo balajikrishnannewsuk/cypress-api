@@ -1,18 +1,19 @@
 version: 2.1
 orbs:
   slack: circleci/slack@4.1
+  port-forwarder: nukengprod/port-forwarder@1.0.1
 
 slack-fail-post-step: &slack-fail-post-step
   context:
-    - platformintegration-api-ci-slack
+    - platform-integration-ci-slack
   post-steps:
     - slack/notify:
-        branch_pattern: .+
+        branch_pattern: master
         event: fail
         template: basic_fail_1
         channel: C02L84WH2TZ
 
-commands:
+
 
   install_nodejs:
     steps:
@@ -20,85 +21,86 @@ commands:
           name: Install Node.js
           command: |
             curl -sSL "https://nodejs.org/dist/v10.21.0/node-v10.21.0-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v10.21.0-linux-x64/bin/node
-            curl https://www.npmjs.com/install.sh | sudo npm_install=6.14.11 sh
-  run_npm_command_with_cache:
-    parameters:
-      command:
-        type: string
-    steps:
-      - restore_cache:
-          name: Restore npm cache
-          keys:
-            - v1-deps-{{ checksum "package-lock.json" }}
-      - run:
-          name: NPM install
-          command: npm << parameters.command >>
-      - save_cache:
-          name: Save npm cache
-          key: v1-deps-{{ checksum "package-lock.json" }}
-          paths:
-            - node_modules
+            curl https://www.npmjs.com/install.sh | sudo npm_install=6.14.11 sh      
 
-  install_js_dependencies_with_cache:
+  start-port-forwarder:
+  description: Start proxying to nuk-port-forwarder
     steps:
-      - run_npm_command_with_cache:
-          command: run install-js-dependencies
+      - port-forwarder/install
+      - port-forwarder/hosts:
+            hostname: origin-capi-uat.cloud-newsint.co.uk
+      - port-forwarder/authenticate:
+           aws_access_key_id: PORT_FORWARDER_EKS_AWS_ACCESS_KEY_ID
+           aws_secret_access_key: PORT_FORWARDER_EKS_AWS_SECRET_ACCESS_KEY
+           aws_role_arn: PORT_FORWARDER_EKS_AWS_ROLE_ARN
+           cluster_name: PORT_FORWARDER_EKS_CLUSTER_NAME
+           namespace: PORT_FORWARDER_EKS_NAMESPACE
+      - port-forwarder/start
 
+  
   run_cypress_tests:
     steps:
       - run:
           name: Run Cypress tests
-          command: |  
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=filesize)" --reporter cypress-circleci-reporter
+          command: |
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob tests/functional/cypress/integration/tests/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter
+
+
 jobs:
   build:
     docker:
       - image: circleci/php:7.4-browsers
     steps:
       - checkout
-      - install_nodejs 
-   
+      - install_nodejs
+    
 
   cypress-tests:
     machine:
       image: ubuntu-2004:202010-01
     parallelism: 3
-    parameters:
-        wp-version:
-            type: string
-            default: "latest"
     resource_class: xlarge
     steps:
       - checkout
+      - start-port-forwarder
       - attach_workspace:
           at: .
       - run:
           name: npm install
           command: |
             npm ci
-      - run:  
-          name: Run Cypress tests 
-          command: |  
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter 
+      - run:
+          name: install dayjs
+          command: |
+            npm i dayjs
+      - run_cypress_tests:
       - store_artifacts:
-          path: cypress/screenshots
+          path: tests/functional/cypress/screenshots
       - store_test_results:
-          path: test_results/cypress
+          path: test_results
 
+  deploy-dev:
+    docker:
+      - image: cimg/base:2021.01
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - add_ssh_keys:
+          fingerprints:
+            # CircleCI Deploy Fingerprint in newsuk repo
+            - c0:42:f2:04:3b:ff:82:1d:62:5b:2e:41:ea:00:db:df
+      
 
-
+  
 workflows:
   version: 2
+  sync:
+    jobs:
+      - sync:
+          <<: *slack-fail-post-step
   build_deploy:
     jobs:
       - build:
-          <<: *slack-fail-post-step
-          filters:
-            branches:
-              ignore: /.*-built
       - cypress-tests:
           <<: *slack-fail-post-step
-          requires:
-            - build
-
-      

@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
-
-describe('Update API', () => {
+Cypress.config("baseUrl", "http://jsonplaceholder.typicode.com");
+describe('Todo API', () => {
   it('returns a JSON data', () => {
     cy.request('/todos')
       .its('headers')

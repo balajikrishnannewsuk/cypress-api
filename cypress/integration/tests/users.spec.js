@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-
+Cypress.config("baseUrl", "http://jsonplaceholder.typicode.com");
 describe('Users API', () => {
   beforeEach(() => cy.request('/users').as('users'));
 

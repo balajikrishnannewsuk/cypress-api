@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 
+Cypress.config("baseUrl", "http://jsonplaceholder.typicode.com");
+
 describe('Post API', () => {
   it('loads all the posts successfully', () => {
     cy.api({ url: '/posts' }).then((res) => {

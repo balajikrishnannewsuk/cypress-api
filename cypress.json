@@ -1,4 +1,4 @@
 {
-  "baseUrl": "http://jsonplaceholder.typicode.com",
+  "baseUrl": "https://origin-capi-uat.cloud-newsint.co.uk/newsletterservice/newsletters",
   "env":{"mocha":true}
 }
