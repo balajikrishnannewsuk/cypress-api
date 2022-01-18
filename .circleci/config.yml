@@ -93,7 +93,41 @@ commands:
                   aws_role_arn: PORT_FORWARDER_EKS_AWS_ROLE_ARN
                   cluster_name: PORT_FORWARDER_EKS_CLUSTER_NAME
                   namespace: PORT_FORWARDER_EKS_NAMESPACE
-            - port-forwarder/start           
+            - port-forwarder/start 
+  install-kubectl:
+        steps:
+            - run:
+                  name: 'Install kubectl'
+                  command: |
+                      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+                      curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256" && \
+                      echo "$(<kubectl.sha256) kubectl" | sha256sum --check && \
+                      sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
+                      kubectl version --client
+  authenticate-eks-cluster:
+        description: 'authenticate against a EKS cluster'
+        parameters:
+            role:
+                type: env_var_name
+            access-key:
+                type: env_var_name
+            secret-key:
+                type: env_var_name
+            cluster_name:
+                type: string
+            namespace:
+                type: string
+        steps:
+            - assume-role:
+                  role: << parameters.role >>
+                  aws-access-key-id: << parameters.access-key >>
+                  aws-secret-access-key: << parameters.secret-key >>
+            - install-kubectl
+            - run:
+                  name: Authenticate kubectl with EKS Cluster
+                  command: |
+                      aws eks update-kubeconfig --name "<< parameters.cluster_name >>"
+                      kubectl config set-context --current --namespace="<< parameters.namespace >>"                    
 jobs:
   build:
     docker:
