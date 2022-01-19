@@ -12,8 +12,8 @@ executors:
     docker:
       - image: 908690569502.dkr.ecr.eu-west-1.amazonaws.com/cmp-stunnel:latest
         aws_auth:
-          aws_access_key_id: $ECR_AWS_ACCESS_KEY_ID
-          aws_secret_access_key: $ECR_AWS_SECRET_ACCESS_KEY         
+          aws_access_key_id: $AWS_ACCESS_KEY_ID
+          aws_secret_access_key: $AWS_SECRET_ACCESS_KEY         
 
 slack-fail-post-step: &slack-fail-post-step
   context:
