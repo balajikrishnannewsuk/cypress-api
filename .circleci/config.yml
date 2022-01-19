@@ -1,8 +1,19 @@
 version: 2.1
 orbs:
-  aws-cli: circleci/aws-cli@2.0.3
+  aws-ecr: circleci/aws-ecr@7.2.0
   slack: circleci/slack@4.1
-  port-forwarder: nukengprod/port-forwarder@1.0.1
+
+executors:
+  base:
+    docker:
+    - image: circleci/openjdk:8-jdk
+  cypress-tests:
+    resource_class: large
+    docker:
+      - image: 908690569502.dkr.ecr.eu-west-1.amazonaws.com/cmp-stunnel:latest
+        aws_auth:
+          aws_access_key_id: $ECR_AWS_ACCESS_KEY_ID
+          aws_secret_access_key: $ECR_AWS_SECRET_ACCESS_KEY         
 
 slack-fail-post-step: &slack-fail-post-step
   context:
@@ -15,36 +26,6 @@ slack-fail-post-step: &slack-fail-post-step
         channel: C02L84WH2TZ
 
 commands:
-  assume-role:
-        parameters:
-            role:
-                type: env_var_name
-            aws-access-key-id:
-                type: env_var_name
-            aws-secret-access-key:
-                type: env_var_name
-        steps:
-            - aws-cli/install
-            - run:
-                  name: Reset Assumed Role
-                  command: |
-                      touch $BASH_ENV
-                      sed -i "/^export AWS_ACCESS_KEY_ID=/d" $BASH_ENV
-                      sed -i "/^export AWS_SECRET_ACCESS_KEY=/d" $BASH_ENV
-                      sed -i "/^export AWS_SESSION_TOKEN=/d" $BASH_ENV
-            - run:
-                  name: Assuming Role
-                  command: |
-                      unset AWS_SESSION_TOKEN
-                      export AWS_ACCESS_KEY_ID="${<< parameters.aws-access-key-id >>}"
-                      export AWS_SECRET_ACCESS_KEY="${<< parameters.aws-secret-access-key >>}"
-                      echo "AWS identity before assume currently is: $(aws sts get-caller-identity)"
-                      temp_role=$(aws sts assume-role --role-arn "${<< parameters.role >>}" --role-session-name "circle-assumed")
-                      echo "export AWS_ACCESS_KEY_ID=$(echo $temp_role | jq .Credentials.AccessKeyId | xargs)" >> $BASH_ENV
-                      echo "export AWS_SECRET_ACCESS_KEY=$(echo $temp_role | jq .Credentials.SecretAccessKey | xargs)" >> $BASH_ENV
-                      echo "export AWS_SESSION_TOKEN=$(echo $temp_role | jq .Credentials.SessionToken | xargs)" >> $BASH_ENV
-                      source "$BASH_ENV"
-                      echo "AWS identity after assume currently is: $(aws sts get-caller-identity)"
   install_nodejs:
     steps:
       - run:
@@ -82,53 +63,7 @@ commands:
           command: |  
             ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=filesize)" --reporter cypress-circleci-reporter
 
-  start-port-forwarder:
-        description: Start proxying to nuk-port-forwarder
-        steps:
-            - port-forwarder/install
-            - port-forwarder/hosts:
-                  hostname: origin-capi-uat.cloud-newsint.co.uk
-            - port-forwarder/authenticate:
-                  aws_access_key_id: PORT_FORWARDER_EKS_AWS_ACCESS_KEY_ID
-                  aws_secret_access_key: PORT_FORWARDER_EKS_AWS_SECRET_ACCESS_KEY
-                  aws_role_arn: PORT_FORWARDER_EKS_AWS_ROLE_ARN
-                  cluster_name: PORT_FORWARDER_EKS_CLUSTER_NAME
-                  namespace: PORT_FORWARDER_EKS_NAMESPACE
-            - port-forwarder/start 
-  install-kubectl:
-        steps:
-            - run:
-                  name: 'Install kubectl'
-                  command: |
-                      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
-                      curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256" && \
-                      echo "$(<kubectl.sha256) kubectl" | sha256sum --check && \
-                      sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
-                      kubectl version --client
-  authenticate-eks-cluster:
-        description: 'authenticate against a EKS cluster'
-        parameters:
-            role:
-                type: env_var_name
-            access-key:
-                type: env_var_name
-            secret-key:
-                type: env_var_name
-            cluster_name:
-                type: string
-            namespace:
-                type: string
-        steps:
-            - assume-role:
-                  role: << parameters.role >>
-                  aws-access-key-id: << parameters.access-key >>
-                  aws-secret-access-key: << parameters.secret-key >>
-            - install-kubectl
-            - run:
-                  name: Authenticate kubectl with EKS Cluster
-                  command: |
-                      aws eks update-kubeconfig --name "<< parameters.cluster_name >>"
-                      kubectl config set-context --current --namespace="<< parameters.namespace >>"                    
+                     
 jobs:
   build:
     docker:
@@ -148,25 +83,42 @@ jobs:
             default: "latest"
     resource_class: xlarge
     steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - start-port-forwarder    
-      - run:
+    - checkout
+    - attach_workspace:
+          at: .   
+    - run:
+        name: Stunnel Config
+        command: |
+          echo "127.0.0.1 capi-si.newsint.co.uk" >> /etc/hosts
+          echo "127.0.0.1 capi-si.cloud-newsint.co.uk" >> /etc/hosts
+          echo "127.0.0.1 cmp-si-capi.cloud-newsint.co.uk" >> /etc/hosts
+          echo "127.0.0.1 origin-capi-si.cloud-newsint.co.uk" >> /etc/hosts
+          echo "127.0.0.1 origin-capi-uat.cloud-newsint.co.uk" >> /etc/hosts
+          echo "127.0.0.1 cmp-config-si.cloud-newsint.co.uk" >> /etc/hosts
+          echo "127.0.0.1 cmp-config-uat.cloud-newsint.co.uk" >> /etc/hosts
+          echo "127.0.0.1 home-si.uat-thetimes.co.uk" >> /etc/hosts
+          echo "127.0.0.1 home.uat-thetimes.co.uk" >> /etc/hosts
+          echo "127.0.0.1 join-si.uat-thetimes.co.uk" >> /etc/hosts
+          echo "127.0.0.1 join.uat-thetimes.co.uk" >> /etc/hosts
+          echo "127.0.0.1 acs-uat.newsint.co.uk" >> /etc/hosts
+          echo "127.0.0.1 cmptools-eks.ceng-dev.newsuk.tech" >> /etc/hosts
+          echo ${STUNNEL_PSK} > /etc/stunnel/psk.txt
+          chmod 600 /etc/stunnel/psk.txt    
+    - run:
           name: npm install
           command: |
             npm ci
-      - run:
+    - run:
           name: npm install day js
           command: |
             npm i dayjs
-      - run:  
+    - run:  
           name: Run Cypress tests 
           command: |  
             ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter 
-      - store_artifacts:
+    - store_artifacts:
           path: cypress/screenshots
-      - store_test_results:
+    - store_test_results:
           path: test_results/cypress
 
 
