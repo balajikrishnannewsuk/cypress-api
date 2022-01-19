@@ -89,19 +89,19 @@ jobs:
     - run:
         name: Stunnel Config
         command: |
-          echo "127.0.0.1 capi-si.newsint.co.uk" >> /etc/hosts
-          echo "127.0.0.1 capi-si.cloud-newsint.co.uk" >> /etc/hosts
-          echo "127.0.0.1 cmp-si-capi.cloud-newsint.co.uk" >> /etc/hosts
-          echo "127.0.0.1 origin-capi-si.cloud-newsint.co.uk" >> /etc/hosts
-          echo "127.0.0.1 origin-capi-uat.cloud-newsint.co.uk" >> /etc/hosts
-          echo "127.0.0.1 cmp-config-si.cloud-newsint.co.uk" >> /etc/hosts
-          echo "127.0.0.1 cmp-config-uat.cloud-newsint.co.uk" >> /etc/hosts
-          echo "127.0.0.1 home-si.uat-thetimes.co.uk" >> /etc/hosts
-          echo "127.0.0.1 home.uat-thetimes.co.uk" >> /etc/hosts
-          echo "127.0.0.1 join-si.uat-thetimes.co.uk" >> /etc/hosts
-          echo "127.0.0.1 join.uat-thetimes.co.uk" >> /etc/hosts
-          echo "127.0.0.1 acs-uat.newsint.co.uk" >> /etc/hosts
-          echo "127.0.0.1 cmptools-eks.ceng-dev.newsuk.tech" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 capi-si.newsint.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 capi-si.cloud-newsint.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 cmp-si-capi.cloud-newsint.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 origin-capi-si.cloud-newsint.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 origin-capi-uat.cloud-newsint.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 cmp-config-si.cloud-newsint.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 cmp-config-uat.cloud-newsint.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 home-si.uat-thetimes.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 home.uat-thetimes.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 join-si.uat-thetimes.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 join.uat-thetimes.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 acs-uat.newsint.co.uk" >> /etc/hosts
+          sudo /bin/sh -c echo "127.0.0.1 cmptools-eks.ceng-dev.newsuk.tech" >> /etc/hosts
           echo ${STUNNEL_PSK} > /etc/stunnel/psk.txt
           chmod 600 /etc/stunnel/psk.txt    
     - run:
