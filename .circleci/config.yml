@@ -66,7 +66,6 @@ commands:
                      
 jobs:
   build:
-    executor: cypress-tests
     docker:
       - image: circleci/php:7.4-browsers
     steps:
@@ -75,9 +74,9 @@ jobs:
    
 
   cypress-tests:
-    docker:
-      - image: ubuntu-2004:202010-01
-    parallelism: 3
+    # machine:
+    #  image: ubuntu-2004:202010-01
+    # parallelism: 3
     executor: cypress-tests
     parameters:
         wp-version:
@@ -127,7 +126,7 @@ jobs:
 workflows:
   version: 2
   build_deploy:
-    jobs:
+    jobs:  
       - build:
           <<: *slack-fail-post-step
           filters:
