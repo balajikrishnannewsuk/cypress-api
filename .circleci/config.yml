@@ -66,6 +66,7 @@ commands:
                      
 jobs:
   build:
+    executor: cypress-tests
     docker:
       - image: circleci/php:7.4-browsers
     steps:
