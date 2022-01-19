@@ -89,7 +89,6 @@ jobs:
     - run:
         name: Stunnel Config
         command: |
-          sudo tee -a /etc/hosts \<<<
           echo "127.0.0.1 capi-si.newsint.co.uk" >> /etc/hosts
           echo "127.0.0.1 capi-si.cloud-newsint.co.uk" >> /etc/hosts
           echo "127.0.0.1 cmp-si-capi.cloud-newsint.co.uk" >> /etc/hosts
