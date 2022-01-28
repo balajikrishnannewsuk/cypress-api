@@ -79,7 +79,7 @@ jobs:
       - run:  
           name: Run Cypress tests 
           command: |  
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/test/*.js | circleci tests split --split-by=filesize | paste -sd "," -)" --reporter cypress-circleci-reporter 
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=filesize | paste -sd "," -)" --reporter cypress-circleci-reporter 
       - store_artifacts:
           path: cypress/screenshots
       - store_test_results:
