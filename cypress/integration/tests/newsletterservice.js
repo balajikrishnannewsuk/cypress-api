@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-Cypress.config("baseUrl", "https://origin-capi-uat.cloud-newsint.co.uk/newsletterservice/newsletters");
+Cypress.config("baseUrl", "http://origin-capi-uat.cloud-newsint.co.uk/newsletterservice/newsletters");
 
 import { newsletterData } from '../testdata/newsletterData';
 const dayjs = require('dayjs');
