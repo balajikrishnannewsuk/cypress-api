@@ -44,12 +44,6 @@ commands:
       - run_npm_command_with_cache:
           command: run install-js-dependencies
 
-  run_cypress_tests:
-    steps:
-      - run:
-          name: Run Cypress tests
-          command: |  
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=filesize)" --reporter cypress-circleci-reporter
 jobs:
   build:
     docker:
@@ -58,7 +52,6 @@ jobs:
       - checkout
       - install_nodejs 
    
-
   cypress-tests:
     machine:
       image: ubuntu-2004:202010-01
@@ -94,8 +87,6 @@ jobs:
           path: cypress/screenshots
       - store_test_results:
           path: test_results/cypress
-
-
 
 workflows:
   version: 2
