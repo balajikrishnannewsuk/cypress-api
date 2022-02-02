@@ -74,9 +74,10 @@ jobs:
    
 
   cypress-tests:
-    machine:
-      image: ubuntu-2004:202010-01
-    parallelism: 3
+    # machine:
+    #   image: ubuntu-2004:202010-01
+    # parallelism: 3
+    executor: cypress-tests
     parameters:
         wp-version:
             type: string
