@@ -1,19 +1,6 @@
 version: 2.1
 orbs:
-  aws-ecr: circleci/aws-ecr@7.2.0
   slack: circleci/slack@4.1
-
-executors:
-  base:
-    docker:
-    - image: circleci/openjdk:8-jdk
-  cypress-tests:
-    resource_class: large
-    docker:
-      - image: 908690569502.dkr.ecr.eu-west-1.amazonaws.com/cmp-stunnel:latest
-        aws_auth:
-          aws_access_key_id: $ECR_AWS_ACCESS_KEY_ID
-          aws_secret_access_key: $ECR_AWS_SECRET_ACCESS_KEY         
 
 slack-fail-post-step: &slack-fail-post-step
   context:
@@ -26,6 +13,7 @@ slack-fail-post-step: &slack-fail-post-step
         channel: C02L84WH2TZ
 
 commands:
+
   install_nodejs:
     steps:
       - run:
@@ -62,8 +50,6 @@ commands:
           name: Run Cypress tests
           command: |  
             ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=filesize)" --reporter cypress-circleci-reporter
-
-                     
 jobs:
   build:
     docker:
@@ -83,43 +69,22 @@ jobs:
             default: "latest"
     resource_class: xlarge
     steps:
-    - checkout
-    - attach_workspace:
-          at: .   
-    - run:
-        name: Stunnel Config
-        command: |
-          sudo /bin/sh -c echo "127.0.0.1 capi-si.newsint.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 capi-si.cloud-newsint.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 cmp-si-capi.cloud-newsint.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 origin-capi-si.cloud-newsint.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 origin-capi-uat.cloud-newsint.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 cmp-config-si.cloud-newsint.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 cmp-config-uat.cloud-newsint.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 home-si.uat-thetimes.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 home.uat-thetimes.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 join-si.uat-thetimes.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 join.uat-thetimes.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 acs-uat.newsint.co.uk" >> /etc/hosts
-          sudo /bin/sh -c echo "127.0.0.1 cmptools-eks.ceng-dev.newsuk.tech" >> /etc/hosts
-          echo ${STUNNEL_PSK} > /etc/stunnel/psk.txt
-          chmod 600 /etc/stunnel/psk.txt    
-    - run:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
           name: npm install
           command: |
             npm ci
-    - run:
-          name: npm install day js
-          command: |
-            npm i dayjs
-    - run:  
+      - run:  
           name: Run Cypress tests 
           command: |  
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter 
-    - store_artifacts:
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=filesize | paste -sd "," -)" --reporter cypress-circleci-reporter 
+      - store_artifacts:
           path: cypress/screenshots
-    - store_test_results:
+      - store_test_results:
           path: test_results/cypress
+
 
 
 workflows:
@@ -135,5 +100,3 @@ workflows:
           <<: *slack-fail-post-step
           requires:
             - build
-
-      
