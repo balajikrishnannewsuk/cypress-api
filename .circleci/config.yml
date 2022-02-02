@@ -13,8 +13,7 @@ slack-fail-post-step: &slack-fail-post-step
         template: basic_fail_1
         channel: C02L84WH2TZ
 
-commands:
-  
+commands:  
   install_nodejs:
     steps:
       - run:
@@ -44,22 +43,6 @@ commands:
     steps:
       - run_npm_command_with_cache:
           command: run install-js-dependencies
-
-  start-port-forwarder:
-        description: Start proxying to nuk-port-forwarder
-        steps:
-            - port-forwarder/install
-            - port-forwarder/hosts:
-                  hostname: api.test-thetimes.co.uk
-            - port-forwarder/hosts:
-                  hostname: cps-api-tnl-ci.elb.tnl-dev.ntch.co.uk
-            - port-forwarder/authenticate:
-                  aws_access_key_id: PORT_FORWARDER_EKS_AWS_ACCESS_KEY_ID
-                  aws_secret_access_key: PORT_FORWARDER_EKS_AWS_SECRET_ACCESS_KEY
-                  aws_role_arn: PORT_FORWARDER_EKS_AWS_ROLE_ARN
-                  cluster_name: PORT_FORWARDER_EKS_CLUSTER_NAME
-                  namespace: PORT_FORWARDER_EKS_NAMESPACE
-            - port-forwarder/start        
 
   run_cypress_tests:
     steps:
