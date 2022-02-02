@@ -69,6 +69,21 @@ jobs:
           name: npm install
           command: |
             npm ci
+      - run:
+          name: "Print AWS_ACCESS_KEY_ID from Context"
+          command: echo ${AWS_ACCESS_KEY_ID}   
+      - run:
+          name: "Print AWS_SECRET_ACCESS_KEY from Context"
+          command: echo ${AWS_SECRET_ACCESS_KEY} 
+      - run:
+          name: "Print IAM_ROLE from Context"
+          command: echo ${IAM_ROLE}   
+      - run:
+          name: "Print CLUSTER_NAME from Context"
+          command: echo ${CLUSTER_NAME}  
+      - run:
+          name: "Print namespace from Context"
+          command: echo ${namespace}          
       - port-forwarder/install
       - port-forwarder/hosts:
          hostname: origin-capi-uat.cloud-newsint.co.uk
