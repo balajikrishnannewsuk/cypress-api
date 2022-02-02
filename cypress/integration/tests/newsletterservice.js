@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-
+//-Added base url
 Cypress.config("baseUrl", "http://origin-capi-uat.cloud-newsint.co.uk/newsletterservice/newsletters");
 
 import { newsletterData } from '../testdata/newsletterData';
