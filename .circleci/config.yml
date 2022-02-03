@@ -1,7 +1,7 @@
 version: 2.1
 orbs:
   slack: circleci/slack@4.1
-  port-forwarder: nukengprod/port-forwarder@dev:PR-32
+  port-forwarder: nukengprod/port-forwarder@1.0.8
 
 slack-fail-post-step: &slack-fail-post-step
   context:
@@ -93,7 +93,7 @@ jobs:
          aws_role_arn: PORT_FORWARDER_IAM_ROLE
          cluster_name: PORT_FORWARDER_CLUSTER_NAME
          namespace: PORT_FORWARDER_NAMESPACE
-      - port-forwarder/start    
+      - port-forwarder/start
       - run:  
           name: Run Cypress tests 
           command: |  
