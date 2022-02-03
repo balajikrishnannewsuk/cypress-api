@@ -88,11 +88,11 @@ jobs:
       - port-forwarder/hosts:
          hostname: origin-capi-uat.cloud-newsint.co.uk
       - port-forwarder/authenticate:
-         aws_access_key_id: AWS_ACCESS_KEY_ID
-         aws_secret_access_key: AWS_SECRET_ACCESS_KEY
-         aws_role_arn: IAM_ROLE
-         cluster_name: CLUSTER_NAME
-         namespace: namespace
+         aws_access_key_id: PORT_FORWARDER_ACCESS_KEY_ID
+         aws_secret_access_key: PORT_FORWARDER_SECRET_ACCESS_KEY
+         aws_role_arn: PORT_FORWARDER_IAM_ROLE
+         cluster_name: PORT_FORWARDER_CLUSTER_NAME
+         namespace: PORT_FORWARDER_NAMESPACE
       - port-forwarder/start    
       - run:  
           name: Run Cypress tests 
