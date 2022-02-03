@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   slack: circleci/slack@4.1
+  port-forwarder: nukengprod/port-forwarder@1.0.1
 
 slack-fail-post-step: &slack-fail-post-step
   context:
@@ -12,8 +13,7 @@ slack-fail-post-step: &slack-fail-post-step
         template: basic_fail_1
         channel: C02L84WH2TZ
 
-commands:
-
+commands:                 
   install_nodejs:
     steps:
       - run:
@@ -44,12 +44,6 @@ commands:
       - run_npm_command_with_cache:
           command: run install-js-dependencies
 
-  run_cypress_tests:
-    steps:
-      - run:
-          name: Run Cypress tests
-          command: |  
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=filesize)" --reporter cypress-circleci-reporter
 jobs:
   build:
     docker:
@@ -58,7 +52,6 @@ jobs:
       - checkout
       - install_nodejs 
    
-
   cypress-tests:
     machine:
       image: ubuntu-2004:202010-01
@@ -76,16 +69,39 @@ jobs:
           name: npm install
           command: |
             npm ci
+      - run:
+          name: "Print AWS_ACCESS_KEY_ID from Context"
+          command: echo ${AWS_ACCESS_KEY_ID}   
+      - run:
+          name: "Print AWS_SECRET_ACCESS_KEY from Context"
+          command: echo ${AWS_SECRET_ACCESS_KEY} 
+      - run:
+          name: "Print IAM_ROLE from Context"
+          command: echo ${IAM_ROLE}   
+      - run:
+          name: "Print CLUSTER_NAME from Context"
+          command: echo ${CLUSTER_NAME}  
+      - run:
+          name: "Print namespace from Context"
+          command: echo ${namespace}          
+      - port-forwarder/install
+      - port-forwarder/hosts:
+         hostname: origin-capi-uat.cloud-newsint.co.uk
+      - port-forwarder/authenticate:
+         aws_access_key_id: AWS_ACCESS_KEY_ID
+         aws_secret_access_key: AWS_SECRET_ACCESS_KEY
+         aws_role_arn: IAM_ROLE
+         cluster_name: CLUSTER_NAME
+         namespace: namespace
+      - port-forwarder/start    
       - run:  
           name: Run Cypress tests 
           command: |  
-            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=timings | paste -sd "," -)" --reporter cypress-circleci-reporter 
+            ./node_modules/cypress/bin/cypress run --spec "$( circleci tests glob cypress/integration/**/*.js | circleci tests split --split-by=filesize | paste -sd "," -)" --reporter cypress-circleci-reporter 
       - store_artifacts:
           path: cypress/screenshots
       - store_test_results:
           path: test_results/cypress
-
-
 
 workflows:
   version: 2
@@ -100,5 +116,3 @@ workflows:
           <<: *slack-fail-post-step
           requires:
             - build
-
-      

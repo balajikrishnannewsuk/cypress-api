@@ -6,7 +6,7 @@ This is an example repo on how to use `Cypress` to run API integration tests aga
 
 - [Cypress](https://www.cypress.io/)
 - [cy-api](https://github.com/bahmutov/cy-api) plugin
-
+- [dayjs](https://www.npmjs.com/package/dayjs)
 ## Dependencies
 
 To run the tests, please ensure you have the following installed:
