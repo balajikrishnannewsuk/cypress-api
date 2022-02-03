@@ -1,7 +1,7 @@
 version: 2.1
 orbs:
   slack: circleci/slack@4.1
-  port-forwarder: nukengprod/port-forwarder@1.0.1
+  port-forwarder: nukengprod/port-forwarder@dev:PR-32
 
 slack-fail-post-step: &slack-fail-post-step
   context:
