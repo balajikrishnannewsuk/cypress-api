@@ -1,7 +1,7 @@
 version: 2.1
 orbs:
   slack: circleci/slack@4.1
-  port-forwarder: nukengprod/port-forwarder@1.0.8
+  port-forwarder: nukengprod/port-forwarder@dev:PR-32
 
 
 slack-fail-post-step: &slack-fail-post-step
@@ -85,16 +85,19 @@ jobs:
       - run:
           name: "Print namespace from Context"
           command: echo ${namespace}          
-      - port-forwarder/install
+      - port-forwarder/install:
+          sudo: false
       - port-forwarder/hosts:
-         hostname: origin-capi-uat.cloud-newsint.co.uk
+          hostname: origin-capi-uat.cloud-newsint.co.uk
+          sudo: false
       - port-forwarder/authenticate:
          aws_access_key_id: PORT_FORWARDER_ACCESS_KEY_ID
          aws_secret_access_key: PORT_FORWARDER_SECRET_ACCESS_KEY
          aws_role_arn: PORT_FORWARDER_IAM_ROLE
          cluster_name: PORT_FORWARDER_CLUSTER_NAME
          namespace: PORT_FORWARDER_NAMESPACE
-      - port-forwarder/start
+      - port-forwarder/start:
+          sudo: false
       - run:  
           name: Run Cypress tests 
           command: |  
