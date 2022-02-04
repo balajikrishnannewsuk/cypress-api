@@ -98,6 +98,10 @@ jobs:
          namespace: PORT_FORWARDER_NAMESPACE
       - port-forwarder/start:
           sudo: false
+      - run:
+          name: Install missing libraries
+          command: |
+            apt-get update && apt-get install -y xvfb libnss3 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm1 libasound2
       - run:  
           name: Run Cypress tests 
           command: |  
