@@ -1,7 +1,8 @@
 version: 2.1
 orbs:
   slack: circleci/slack@4.1
-  port-forwarder: nukengprod/port-forwarder@1.0.1
+  port-forwarder: nukengprod/port-forwarder@1.0.9
+
 
 slack-fail-post-step: &slack-fail-post-step
   context:
@@ -53,8 +54,8 @@ jobs:
       - install_nodejs 
    
   cypress-tests:
-    machine:
-      image: ubuntu-2004:202010-01
+    docker:
+      - image: cimg/node:12.0.0
     parallelism: 3
     parameters:
         wp-version:
@@ -84,16 +85,23 @@ jobs:
       - run:
           name: "Print namespace from Context"
           command: echo ${namespace}          
-      - port-forwarder/install
+      - port-forwarder/install:
+          sudo: false
       - port-forwarder/hosts:
-         hostname: origin-capi-uat.cloud-newsint.co.uk
+          hostname: origin-capi-uat.cloud-newsint.co.uk
+          sudo: false
       - port-forwarder/authenticate:
-         aws_access_key_id: AWS_ACCESS_KEY_ID
-         aws_secret_access_key: AWS_SECRET_ACCESS_KEY
-         aws_role_arn: IAM_ROLE
-         cluster_name: CLUSTER_NAME
-         namespace: namespace
-      - port-forwarder/start    
+         aws_access_key_id: PORT_FORWARDER_ACCESS_KEY_ID
+         aws_secret_access_key: PORT_FORWARDER_SECRET_ACCESS_KEY
+         aws_role_arn: PORT_FORWARDER_IAM_ROLE
+         cluster_name: PORT_FORWARDER_CLUSTER_NAME
+         namespace: PORT_FORWARDER_NAMESPACE
+      - port-forwarder/start:
+          sudo: false
+      - run:
+          name: Install missing libraries
+          command: |
+            apt-get update && apt-get install -y xvfb libnss3 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm1 libasound2
       - run:  
           name: Run Cypress tests 
           command: |  
